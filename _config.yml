@@ -26,6 +26,11 @@ sass:
 defaults:
  -
    scope:
-     path: "_posts" # 将 post 下的 layout 默认都设置为 post
+     path: "_posts"
+   values:
+     layout: "post"
+ -
+   scope:
+     path: "posts"
    values:
      layout: "post"
