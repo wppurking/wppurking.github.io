@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>利用 Dnsmasq 搭建自己的 DNS 服务器</title>
+  <meta name="description" content="前言最近新买了 iPad mini, 在不断折腾的过程中发现一点让我非常非常的无语… 还是与网络有关, 那就是通常情况下, iPad mini 中的 App Store 连接速度那是相当相当相当的慢的, 慢到我打开 App Store 软件的首页需要登上 20~30s 才会有可能访问成功, 那么下载一个应用的情况...">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <script type="text/javascript" src="/javascript/app.js"></script>
+  <link rel="canonical" href="http://wppurking.github.io/ruby/beanstalkd/2012/10/01/li-yong-dnsmasq-da-jian-zi-ji-de-dns-fu-wu-qi.html">
+  <link rel="alternate" type="application/rss+xml" title="Wyatt`s Blog" href="http://wppurking.github.io/feed.xml">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/">Wyatt`s Blog</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title" itemprop="name headline">利用 Dnsmasq 搭建自己的 DNS 服务器</h1>
+    <p class="post-meta"><time datetime="2012-10-01T18:14:00+08:00" itemprop="datePublished">Oct 1, 2012</time></p>
+  </header>
+
+  <div class="post-content" itemprop="articleBody">
+    <h2 id="section">前言</h2>
+<p>最近新买了 iPad mini, 在不断折腾的过程中发现一点让我非常非常的无语… 还是与网络有关, 那就是通常情况下, iPad mini 中的 App Store 连接速度那是相当相当相当的慢的, 慢到我打开 App Store 软件的首页需要登上 20~30s 才会有可能访问成功, 那么下载一个应用的情况可想而知了. 因为在编写 <a href="l1">wyatt_hosts</a> 的时候, 也为了解决在 iMac 上进行 Mac OS 更新慢的问题, 所以关于 iPad mini 基本上也就同样的解决方法了.</p>
+
+<p>在自己想到折腾一个 dnsmasq 之前, 也在网络上搜索过其他的解决方案, 比如 V2EX DNS 可是对我来说, 在 iPad mini 上我也需要其他的比如 Google Drive 等也能够快速的访问, 而这些问题的解决办法都在那个 hosts 文件中, 要是我能够将 iPad mini 给越狱就最好了…</p>
+
+<h2 id="section-1">初认</h2>
+<p>由于 iPad mini 没有越狱, 所以我现在能想到的办法就只有自己搭建一台 dns 服务器了, 在网络上搜索 linux dns, mac os dns 很多情况下是使用 <a href="https://www.isc.org/software/bind">bind 9</a> 的软件, 当我阅读完一些配置指南以后(<a href="http://www.ubuntugeek.com/dns-server-setup-using-bind-in-ubuntu.html">例如</a>), 说实话, 我吓倒了 T.T 超级复杂…… 然后, 我在某一篇文章中看到另外一段话”使用 dnsmasq 做 dns 缓存”吸引过去了, 这才让我去搜索了一下 <a href="http://www.thekelleys.org.uk/dnsmasq/doc.html">dnsmasq</a>, 哈哈, It is designed to provide DNS and, optionally, DHCP, to a small network. 这太棒了, 和我的目的一样, bind 9 虽然是非常流行并且久经沙场的 dns 服务器, 同时这也意味着我需要为那用不着的 20% 功能去折腾一个庞然大物吗? 所以最后选择了更加轻便的 dnsmasq.</p>
+
+<h2 id="section-2">安装</h2>
+<p>在 *nix 下安装软件非常的方便, 因为我是 Mac OS 所以先 <code>brew search dnsm</code> 搜索看看有没有现成的, 果然找到, 接下来 <code>brew install dnsmasq</code>, 经过一系列脚本的安装, 得到一段话:</p>
+
+<blockquote>
+  <p>To configure dnsmasq, copy the example configuration to /usr/local/etc/dnsmasq.conf and edit to taste.</p>
+</blockquote>
+
+<blockquote>
+  <p>cp /usr/local/Cellar/dnsmasq/2.61/dnsmasq.conf.example /usr/local/etc/dnsmasq.conf</p>
+</blockquote>
+
+<blockquote>
+  <p>To load dnsmasq automatically on startup, install and load the provided launchd item as follows:</p>
+</blockquote>
+
+<blockquote>
+  <p>sudo cp /usr/local/Cellar/dnsmasq/2.61/homebrew.mxcl.dnsmasq.plist /Library/LaunchDaemons sudo launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist</p>
+</blockquote>
+
+<p>在 Mac OS 配置自启动除非看了这文档, 否则我还真会糊涂…</p>
+
+<h2 id="section-3">配置</h2>
+<p>看到一个 dnsmasq.conf 的文件了吧, 还是需要一点点配置的, 但非常非常的少.</p>
+
+<ul>
+  <li>配置 dnsmasq 的上游 dns 服务器;(这是一个 dns 缓存, 那么其还是需要有上游服务器进行一次域名解析的)</li>
+  <li>配置系统的 dns 服务器, 将 dnsmasq 设置在首位寻找</li>
+  <li>设置 dnsmasq 需要监听的 IP 地址, 让其他服务器能够找到他</li>
+</ul>
+
+<p>对应上面的三个事情, 只有 4 条配置即可, 不要打开 dnsmasq.conf 看到一大片内容就吓到了.</p>
+
+<ol>
+  <li>首先配置 resolv-file=/etc/resolv.dnsmasq.conf 这个参数表示 dnsmasq 会从这个指定的文件中寻找上游 dns 服务器</li>
+  <li>将 127.0.0.1 添加到 /etc/resolv.conf 文件的第一行中, 让系统首先寻找本地的 dnsmasq 服务器
+取消注释的 <code>strict-order</code> 表示严格安装 resolv-file 文件中的顺序从上到下进行 DNS 解析, 直到第一个成功解析成功为止</li>
+  <li>确保注释掉 <code>no-hosts</code>, 默认情况下这是注释掉的, dnsmasq 会首先寻找本地的 hosts 文件再去寻找缓存下来的域名, 最后去上游 dns 服务器寻找.</li>
+  <li>设置 <code>listen-address=127.0.0.1</code>, 表示这个 dnsmasq 本机自己使用有效.</li>
+  <li>这里有一个坑 <strong>listen-addres</strong> , 我爬了好长时间才爬出来..</li>
+</ol>
+
+<p>在这些配置中, listen-address 的参数坑了我好长时间, 最后才能明白如何配置. 例如, 我还需要让局域网内其他的服务器也能够首先访问这个 dnsmasq 来进行域名解析如何配置? <code>listen-address=192.168.1.100</code> (dnsmasq 所在服务器局域网内 ip), 好吧, 这样你本机配置的 127.0.0.1 就没效果了… 如果设置为 <code>listen-address=127.0.0.1</code> 那局域网内其他服务器就无法访问到这个 dnsmasq 了, 其实应该这样设置 <code>listen-address=192.168.1.100,127.0.0.1</code> 这样你就能双方都满足了, 不过需要注意的一点是, 如果 dnsmasq 所在服务器在局域网的 ip 地址变更了与配置文件中的不一样, 那么理所当然的再使用配置文件中的那个 ip, 局域网内其他服务器也就找不到这台 dnsmasq ,也就无法利用本地的 dns 缓存了.</p>
+
+<h2 id="section-4">汇总</h2>
+<p>最后来汇总一下, 能够快速的部署起来.</p>
+
+<p><strong>resolv.conf</strong></p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><table style="border-spacing: 0"><tbody><tr><td class="gutter gl" style="text-align: right"><pre class="lineno">1
+2</pre></td><td class="code"><pre><span class="c"># 让操作系统去 127.0.0.1 找 dnsmasq</span>
+nameserver 127.0.0.1<span class="w">
+</span></pre></td></tr></tbody></table></code></pre></figure>
+
+<p><strong>resolv.dnsmasq.conf</strong></p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><table style="border-spacing: 0"><tbody><tr><td class="gutter gl" style="text-align: right"><pre class="lineno">1
+2
+3
+4</pre></td><td class="code"><pre><span class="c"># 让 v2ex(这些) dns 的地址成为 dnsmasq 的上游 DNS</span>
+nameserver 199.91.73.222
+nameserver 8.8.8.8
+nameserver 8.8.4.4<span class="w">
+</span></pre></td></tr></tbody></table></code></pre></figure>
+
+<p><strong>dnsmasq.conf</strong></p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><table style="border-spacing: 0"><tbody><tr><td class="gutter gl" style="text-align: right"><pre class="lineno">1
+2
+3</pre></td><td class="code"><pre>resolv-file<span class="o">=</span>/etc/resolv.dnsmasq.conf
+strict-order
+listen-address<span class="o">=</span>192.168.1.100,127.0.0.1<span class="w">
+</span></pre></td></tr></tbody></table></code></pre></figure>
+
+<h3 id="dnsmasq-">上面设置好以后, 让我们把 dnsmasq 启动起来吧:</h3>
+
+<ol>
+  <li>手动启动: <code>sudo dnsmasq</code> just it.</li>
+  <li>Mac OS 开机自启动, 这也是我现在设置的方式. 首先运行 <code>brew info dnsmasq</code> 查看软件信息, 看到有一句话 
+&gt; To load dnsmasq:
+&gt;   sudo launchctl load /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist</li>
+</ol>
+
+<p>照做就好了, <strong>注意</strong> 使用不同版本的 Homebrew 会略有不同, 在版本 0.9.4 的时候, 简化了, 不需要自己去 copy 一个 Mac OS 下的 plist 文件了(具体答案可在 /usr/local/Library/Formula/dnsmasq.rb 中找到).</p>
+
+<h3 id="section-5">关闭</h3>
+<p>如果想关闭, 就按照 *nix 的常规用 <code>ps ax | grep dns</code> 找到 pid 然后 <code>kill  -9 [pid]</code>就行, 因为 -9 是 SIGKILL 信号. 同时如果想让 dnsmasq 清理掉所有缓存的 dns 记录, 发送一个 SIGHUP(1) 信号给 pid 就好 <code>kill -1 [pid]</code> 这些可通过 <code>man dnsmasq</code> 来看到.</p>
+
+<h2 id="section-6">测试</h2>
+<p>最后就是来测试测试是否起作用了. 这个最简单啦, 直接使用 <code>dig</code> 命令吧, 执行大于 2 次, 查看其中返回的 “Query time: x msec” 的结果就好, 如果第二次以后 x=0, 那么就配置成功了.</p>
+
+<p>例子: <code>dig google.com</code> 查看详细的结果</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">wyatt ~<span class="nv">$ </span>dig google.com
+
+; &lt;&lt;&gt;&gt; DiG 9.7.3-P3 &lt;&lt;&gt;&gt; google.com.hk
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER<span class="sh">&lt;&lt;- opcode: QUERY, status: NOERROR, id: 28003
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
+
+;; QUESTION SECTION:
+;google.com.          IN  A
+
+;; ANSWER SECTION:
+google.com.       0   IN  A   74.125.235.131
+
+;; Query time: 0 msec
+;; SERVER: 127.0.0.1#53(127.0.0.1)
+;; WHEN: Thu Nov 22 22:49:42 2012
+</span><span class="err">;; MSG SIZE  rcvd: 47</span></code></pre></figure>
+
+<p><code>dig baidu.com +short</code> 仅仅查看解析的 ip</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">220.181.111.85
+220.181.111.86
+123.125.114.144</code></pre></figure>
+
+<p>将电脑开启 dnsmasq, 然后将 iPad mini 连接进入局域网, 将 DNS 服务处第一个设置成 dnsmasq 服务器所在的 ip, 第二个设置成 V2EX 的, 第三个设置为 8.8.8.8 (用英文,隔开). 这回, 从 App Store 下载应用的时候, 总算能够看到明显的进度条滚动了 T.T</p>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Wyatt`s Blog</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li>Wyatt`s Blog</li>
+          <li><a href="mailto:wppurking#gmail.com">wppurking#gmail.com</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/wppurking" target="_blank"><span class="icon icon--github"><svg viewBox="0 0 16 16"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">wppurking</span></a>
+
+          </li>
+          
+
+          
+          <li>
+            <a href="https://twitter.com/wyatt_pan" target="_blank"><span class="icon icon--twitter"><svg viewBox="0 0 16 16"><path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/></svg>
+</span><span class="username">wyatt_pan</span></a>
+
+          </li>
+          
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>Wyatt`s Blog 工作,生活的记录
+</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>

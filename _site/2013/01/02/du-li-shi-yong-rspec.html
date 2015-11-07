@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>独立使用 Rspec</title>
+  <meta name="description" content="第一次使用 Rspec 是跟着 Ruby On Rails Tutorial 书中的例子做的. 而在今天之前的时间里, 只要我使用 Rspec 就都离不开 Rails, 一条 rails generate rspec:install 自动帮我生成好 Rspec 配置文件, 然后我就可以开始写测试代码了. 现在, ...">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <script type="text/javascript" src="/javascript/app.js"></script>
+  <link rel="canonical" href="http://wppurking.github.io/2013/01/02/du-li-shi-yong-rspec.html">
+  <link rel="alternate" type="application/rss+xml" title="Wyatt`s Blog" href="http://wppurking.github.io/feed.xml">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/">Wyatt`s Blog</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title" itemprop="name headline">独立使用 Rspec</h1>
+    <p class="post-meta"><time datetime="2013-01-02T22:02:00+08:00" itemprop="datePublished">Jan 2, 2013</time></p>
+  </header>
+
+  <div class="post-content" itemprop="articleBody">
+    <p>第一次使用 Rspec 是跟着 <a href="http://ruby.railstutorial.org/">Ruby On Rails Tutorial</a> 书中的例子做的. 而在今天之前的时间里, 只要我使用 Rspec 就都离不开 Rails, 一条 <code>rails generate rspec:install</code> 自动帮我生成好 Rspec 配置文件, 然后我就可以开始写测试代码了. 现在, 我有一个非 rails 项目也想使用 Rspec 编写测试代码, 这时我发现我连 Rspec 最基础的使用方法还不会呢…</p>
+
+<h2 id="section">安装</h2>
+<p>Rspec 分成了三个部分</p>
+
+<ul>
+  <li>为让整个 Rsepc 能够跑起来的核心 <a href="l1">rspec-core</a></li>
+  <li>为 Rspec 提供了 DBB/TDD 各种 DSL 的 Matcher 等等 <a href="http://github.com/rspec/rspec-expectations">rspec-expectations</a></li>
+  <li>为了完成 Mock 测试提供支持的 <a href="http://github.com/rspec/rspec-mocks">rspec-mocks</a></li>
+</ul>
+
+<p>对于使用来说, 基本上都会使用到, 所以有一个 rspec 的 meta-gem 依赖这三个模块, 这也是 Rspec 项目的模块划分形式.</p>
+
+<p><code>gem install rspec</code></p>
+
+<h2 id="section-1">配置</h2>
+
+<h3 id="rspec-">Rspec 配置</h3>
+<p>在这里, 我配置了两个文件:</p>
+
+<ul>
+  <li>一个为 <a href="l1">rspec-core</a> README 中介绍的项目根目录下的 .rspec 文件. 这个文件用来记录 Rspec 提供的用来执行测试的 <code>rspec</code> 命令的配置文件(如果用过 <a href="https://github.com/sporkrb/spork">spork</a> 是需要设置 -drb 的 ).</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>cat .rspec
+<span class="c"># 每一条配置一行. 我都用的配置简写, 具体可查询 rspec -h</span>
+<span class="c"># 设置了测试结果的输出格式, [d]ocument 当然是最好阅读的.</span>
+-fd
+<span class="c"># 这是是执行进度, 就是会看到一个一个的点点. </span>
+<span class="c"># [文档以及例子](https://www.relishapp.com/rspec/rspec-core/v/2-4/docs/command-line/format-option)</span>
+-fp
+<span class="c"># 设置需要颜色输出</span>
+-c
+<span class="c"># 设置需要分布式执行测试, 结合 spork 使用</span>
+<span class="c"># 如果没有设置 spork 则不可以使用这个参数</span>
+<span class="c">#-X</span></code></pre></figure>
+
+<ul>
+  <li>一个为初始化配置 Rspec 的 spec/spec_helper.rb 的配置文件(例如 spork 的配置会配置在这里面).
+这个文件文档我没有找到, 在 <a href="l1">rspec-core</a> 的源代码中也只找到一些片段, 所以就学着 rails-rspec 中生成的 spec_helper.rb 来参考, 创建 ./spec/spec_helper.rb 文件, 并且在某一个 *_sepc.rb 测试文件的第一行 <code>require spec_helper</code>. 在利用 <code>rspec</code> 命令执行测试代码的时候, 其实已经将当前项目的根路径(根据./spec 判断的)添加到了 Ruby 的 gem 的搜索路径中去了(可添加 <code>puts $:</code> 查看 ruby 的所有 gem 加载路径).</li>
+</ul>
+
+<h3 id="spork-option">Spork (Option)</h3>
+<p>这个是用来对 Rspec 加载的文件进行缓存加速测试启动用的, 一般小项目不需要, 可做选择使用.在利用 RubyGem 安装了 spork 后, 配置 spork 也就一条命令(详细参数的个性配置请参考文档):</p>
+
+<p><code>spork rspec --bootstrap</code></p>
+
+<p>然后你可以在 ./spec/ 目录下看到 spec_helper.rb 文件的上面部分多了</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s1">'rubygems'</span>
+<span class="nb">require</span> <span class="s1">'spork'</span>
+<span class="c1">#uncomment the following line to use spork with the debugger</span>
+<span class="c1">#require 'spork/ext/ruby-debug'</span>
+
+<span class="no">Spork</span><span class="p">.</span><span class="nf">prefork</span> <span class="k">do</span>
+  <span class="c1"># Loading more in this block will cause your tests to run faster. However,</span>
+  <span class="c1"># if you change any configuration or code from libraries loaded here, you'll</span>
+  <span class="c1"># need to restart spork for it take effect.</span>
+<span class="k">end</span>
+
+<span class="no">Spork</span><span class="p">.</span><span class="nf">each_run</span> <span class="k">do</span>
+  <span class="c1"># This code will be run each time you run your specs.</span>
+<span class="k">end</span></code></pre></figure>
+
+<p>这些就是 spork 的配置. 使用 spork 的缺点是, 如果启动 spork server 之后, 你修改了已经被 spork server 加载缓存的 *.rb 文件, 那么则需要对 spork server 重启, 在 Rails 中使用典型的就是修改了 models 需要重启 spork server.</p>
+
+<h2 id="section-2">测试代码依赖</h2>
+<p>此时, 已经可以通过 rspec 命令执行测试了, 但是当你多写了几个测试以后会发现问题. “想测试的 Class 无法 require”. 这个时候就是 spec_helper.rb 文件中配置的时候了, 例如使用下面的例子:</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s1">'rspec'</span>
+<span class="no">Dir</span><span class="p">[</span><span class="s1">'./models/*.rb'</span><span class="p">].</span><span class="nf">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">f</span><span class="o">|</span> <span class="nb">require</span> <span class="n">f</span> <span class="p">}</span></code></pre></figure>
+
+<p>这里将 Dir 的路径设置为 ./ 开始的相对路径, 是因为在执行 rspec 命令的时候, 基本只会从项目的根路径下执行 <code>rspec spec/xxx.rb</code> 来进行测试, 如果非项目根路径, 则会报告路径错误.</p>
+
+<h2 id="section-3">总结</h2>
+<p>作为独立使用 Rspec 其实非常的简单, 如果是测试简单的代码, 其实没有配置文件也可以成功, Rspec 都会使用默认值. 在这里花费时间最多的应该是如何将需要测试的依赖 require 到 Rspec 测试环境中来, 作为一个 Rails 新手, 甚至 Ruby 新手, 我想在这里花上一些时间应该是很必要的. 使用 Rspec 编写测试代码是非常舒畅的一件事情.</p>
+
+<p>最后再理一遍顺序:</p>
+
+<ol>
+  <li>使用 rubygem 安装 rspec, spork</li>
+  <li>在项目根目录创建 rspec 命令的配置文件 ./spec/.rspec</li>
+  <li>创建 spec_helper.rb 文件, 可选设置好 spork</li>
+  <li>将依赖的文件添加进入 spec_helper.rb 文件中</li>
+  <li><code>rspec spec/xxx.rb</code> 测试~</li>
+</ol>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Wyatt`s Blog</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li>Wyatt`s Blog</li>
+          <li><a href="mailto:wppurking#gmail.com">wppurking#gmail.com</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/wppurking" target="_blank"><span class="icon icon--github"><svg viewBox="0 0 16 16"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">wppurking</span></a>
+
+          </li>
+          
+
+          
+          <li>
+            <a href="https://twitter.com/wyatt_pan" target="_blank"><span class="icon icon--twitter"><svg viewBox="0 0 16 16"><path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/></svg>
+</span><span class="username">wyatt_pan</span></a>
+
+          </li>
+          
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>Wyatt`s Blog 工作,生活的记录
+</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>

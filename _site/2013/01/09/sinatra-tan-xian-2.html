@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Sinatra 探险 (2)</title>
+  <meta name="description" content="在上一篇的结束, 在一个 Sinatra 项目中, 我用 Bundler 管理了所有 gem, 编写了 config.ru 让支持 Rack 的 Web 应用服务器(Puma)跑了起来, 同时使用 Sinatra::Base 的方式搭建了这个 Sinatra 应用, 接下来要处理其他的东西了.">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <script type="text/javascript" src="/javascript/app.js"></script>
+  <link rel="canonical" href="http://wppurking.github.io/2013/01/09/sinatra-tan-xian-2.html">
+  <link rel="alternate" type="application/rss+xml" title="Wyatt`s Blog" href="http://wppurking.github.io/feed.xml">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/">Wyatt`s Blog</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title" itemprop="name headline">Sinatra 探险 (2)</h1>
+    <p class="post-meta"><time datetime="2013-01-09T23:34:00+08:00" itemprop="datePublished">Jan 9, 2013</time></p>
+  </header>
+
+  <div class="post-content" itemprop="articleBody">
+    <p>在上一篇的结束, 在一个 Sinatra 项目中, 我用 Bundler 管理了所有 gem, 编写了 config.ru 让支持 Rack 的 Web 应用服务器(Puma)跑了起来, 同时使用 Sinatra::Base 的方式搭建了这个 Sinatra 应用, 接下来要处理其他的东西了.</p>
+
+<h2 id="mysql-">Mysql 与连接池</h2>
+<p>在 Gemfile 文件中, 我已经将熟悉的 <code>gem 'mysql'</code> 添加进去了(因为熟悉 mysql 所以没使用 mysql2), 想想, 如果我使用的是 puma, 多线程处理的话是不是得为 mysql 的链接创建一个 pool ? 让 mysql 链接能够重复使用呢? 恩, 然后就在 github 中搜索 “<a href="https://github.com/search?q=pool&amp;p=1&amp;ref=searchbar&amp;type=Repositories&amp;l=Ruby">pool</a>”, 我找到了 <a href="https://github.com/mperham/connection_pool">connection_pool</a>, 看了一下 commit 中有 <img src="https://secure.gravatar.com/avatar/af54a0871600db7fbdbb5c558a6e29a3?s=40" alt="alt mperam" />, 因为知道他是 Sidekiq 的作者, 所以相信这个 gem 应该挺可靠的. 粗略看了一下, connection_pool 的使用通用性质的 pool 化的 gem, 他可以很多你想象得到的东西给 pool 化, 例如各种 conn (redis? memcached? mysql conn?), 再次感叹一下 ruby 提供的 magic. 因为这里会使用纯 SQL 查询, 所以就简化了, 将 DB 的初始化放到了 config.ru 文件中.</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="nb">require</span> <span class="s2">"bundler"</span>
+<span class="no">Bundler</span><span class="p">.</span><span class="nf">require</span>
+
+<span class="nb">require</span> <span class="s1">'./app'</span>
+<span class="no">Dir</span><span class="p">[</span><span class="s1">'./model/**/*.rb'</span><span class="p">].</span><span class="nf">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">f</span><span class="o">|</span> <span class="nb">require</span> <span class="n">f</span> <span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">DB</span>
+  <span class="vi">@pool</span> <span class="o">=</span> <span class="no">ConnectionPool</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">size: </span><span class="mi">3</span><span class="p">,</span> <span class="ss">timeout: </span><span class="mi">5</span><span class="p">)</span> <span class="k">do</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="no">Mysql</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s1">'localhost'</span><span class="p">,</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'username'</span><span class="p">],</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'password'</span><span class="p">],</span> <span class="s1">'dbname'</span><span class="p">)</span> 
+    <span class="n">conn</span><span class="p">.</span><span class="nf">query</span><span class="p">(</span><span class="s2">"SET NAMES UTF8"</span><span class="p">)</span>
+    <span class="n">conn</span>
+  <span class="k">end</span>
+
+  <span class="c1"># 下面的方法从 connection_pool 暴露出来的</span>
+  <span class="k">class</span> <span class="o">&lt;&lt;</span> <span class="nb">self</span>
+
+    <span class="c1"># 使用闭包的形式调用</span>
+    <span class="k">def</span> <span class="nf">with</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+      <span class="vi">@pool</span><span class="p">.</span><span class="nf">with</span> <span class="o">&amp;</span><span class="n">block</span>
+    <span class="k">end</span>
+
+    <span class="c1"># 直接调用</span>
+    <span class="k">def</span> <span class="nf">method_missing</span><span class="p">(</span><span class="nb">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+      <span class="vi">@pool</span><span class="p">.</span><span class="nf">with</span> <span class="k">do</span> <span class="o">|</span><span class="n">connection</span><span class="o">|</span>
+        <span class="n">connection</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="nb">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">run</span> <span class="no">App</span></code></pre></figure>
+
+<p>这样以后, 我在这个 Sinatra 项目的关联的代码中可以这样使用:</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="no">DB</span><span class="p">.</span><span class="nf">query</span><span class="p">(</span><span class="s2">"SELECT now()"</span><span class="p">).</span><span class="nf">fetch_row</span>
+<span class="no">DB</span><span class="p">.</span><span class="nf">with</span> <span class="p">{</span> <span class="o">|</span><span class="n">conn</span><span class="o">|</span> <span class="err">…</span> <span class="p">}</span></code></pre></figure>
+
+<h2 id="json">返回 JSON</h2>
+<p>因为此应用定位的是使用 Sinatra 计算并暴露一些 DB 数据, 建立 JSON API 来进行交互, 所以需要返回 JSON. 在刚刚开始的时候, 我相当直接的 <code>gem 'json'</code> 然后在需要的地方用个 <code>object.to_json</code> 或者 <code>JSON.generte(obj)</code> 来返回 JSON 值, 当我看过 <a href="http://www.sinatrarb.com/contrib/json.html">Sinatra::JSON</a> 我发现我错过了它.. 然后, 我就在 app.rb 中重新认识了它, 同样 Gemfile 也修改了:</p>
+
+<p><strong>app.rb</strong></p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">class</span> <span class="nc">App</span> <span class="o">&lt;</span> <span class="no">Sinatra</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">register</span> <span class="no">Sinatra</span><span class="o">::</span><span class="no">Contrib</span>
+
+  <span class="n">get</span> <span class="s1">'/'</span> <span class="k">do</span>
+  	<span class="n">json</span> <span class="p">{</span><span class="ss">foo: </span><span class="s2">"hello"</span><span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="n">get</span> <span class="s1">'/h'</span> <span class="k">do</span> <span class="s2">"Hello World!"</span> <span class="k">end</span>
+<span class="k">end</span></code></pre></figure>
+
+<p><strong>Gemfile</strong></p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1"># A sample Gemfile</span>
+<span class="n">source</span> <span class="s2">"http://ruby.taobao.org"</span>
+
+<span class="n">gem</span> <span class="s1">'sinatra'</span><span class="p">,</span> <span class="s1">'~&gt; 1.3.3'</span>
+<span class="n">gem</span> <span class="s1">'sinatra-contrib'</span><span class="p">,</span> <span class="s1">'~&gt; 1.3.2'</span>
+
+<span class="n">gem</span> <span class="s1">'puma'</span><span class="p">,</span> <span class="s1">'~&gt; 1.6.3'</span>
+<span class="n">gem</span> <span class="s1">'connection_pool'</span><span class="p">,</span> <span class="s1">'~&gt; 0.9.3'</span>
+<span class="n">gem</span> <span class="s1">'mysql'</span><span class="p">,</span> <span class="s1">'~&gt; 2.9.0'</span>
+<span class="n">gem</span> <span class="s1">'json'</span></code></pre></figure>
+
+<p>使用 Sinatra::JSON , 除了会自行转换 json 字符串, 而且还会自动帮我设置正确的 Content-Type 哦.</p>
+
+<h2 id="hot-reload-with-rerun">Hot reload with rerun</h2>
+<p>这些弄好以后, 我就开始编写 models/ 目录中的详细业务逻辑了, 也就在这时, 我发现我改动了 model 中的代码刷新页面而没有变化 T_T 我感觉很不习惯, 有点失落的感觉.. 然后 Google 搜索 “<a href="https://www.google.com/#hl=en&amp;newwindow=1&amp;qscrl=1&amp;sclient=psy-ab&amp;q=Sinatra%20hot%20reload&amp;oq=Sinatra%20hot%20reload&amp;fp=1&amp;bav=on.2,or.r_gc.r_pw.r_cp.r_qf.&amp;cad=b">Sinatra hot reload</a>” 就找到了 <a href="l1">Frequently Asked Questions</a> 然后就顺藤摸瓜, 知道了一个叫 <a href="https://github.com/alexch/rerun">rerun</a> 的 gem, 定睛一看介绍, 他就是为使用 Sinatra 而出现的 <a href="https://github.com/alexch/rerun#why-did-you-write-this">囧</a> .
+<code>gem install rerun</code> 安装好 rerun , 接下来运行的时候与 Sinatra 的文档中有点不一样, 因为我需要重复执行的命令不是 <code>rakeup</code> 而应该是 <code>puma</code>, 所以将 <code>rerun 'rackup'</code> 改为 <code>rerun 'puma -p 3000'</code>(习惯 3000 端口了)</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">wyatt sample<span class="nv">$ </span>rerun <span class="s1">'puma -p 3000'</span>
+
+00:18:37 <span class="o">[</span>rerun] sample launched
+Puma 1.6.3 starting...
+<span class="k">*</span> Min threads: 0, max threads: 16
+<span class="k">*</span> Environment: development
+<span class="k">*</span> Listening on tcp://0.0.0.0:3000
+Use Ctrl-C to stop
+
+<span class="o">[</span>Listen warning]:
+Missing dependency <span class="s1">'rb-fsevent'</span> <span class="o">(</span>version <span class="s1">'~&gt; 0.9.1'</span><span class="o">)</span>!
+Please add the following to your Gemfile to satisfy the dependency:
+  gem <span class="s1">'rb-fsevent'</span>, <span class="s1">'~&gt; 0.9.1'</span>
+
+For a better performance, it<span class="s1">'s recommended that you satisfy the missing dependency.
+Listen will be polling changes. Learn more at https://github.com/guard/listen#polling-fallback.
+
+00:18:39 [rerun] Watching ./**/*.{rb,js,css,scss,sass,erb,html,haml,ru} using Polling adapter</span></code></pre></figure>
+
+<p>好吧, 看到一个 missing 的警告, 就像他介绍的一样, 用不用自行决定吧, 我就没弄了因为应用文件不多.
+我们来修改一下 app.rb 文件, 然后就会看到新增加</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">00:20:57 <span class="o">[</span>rerun] Change detected: 1 modified
+00:20:57 <span class="o">[</span>rerun] Sending signal TERM to 981
+ - Gracefully stopping, waiting <span class="k">for </span>requests to finish
+
+00:20:57 <span class="o">[</span>rerun] Osticketadapter restarted
+Puma 1.6.3 starting...
+<span class="k">*</span> Min threads: 0, max threads: 16
+<span class="k">*</span> Environment: development
+<span class="k">*</span> Listening on tcp://0.0.0.0:3000
+Use Ctrl-C to stop</code></pre></figure>
+
+<p>恩, 成功啦~</p>
+
+<p>其实在看 <a href="l1">Frequently Asked Questions</a> 的时候有一个 <a href="http://www.sinatrarb.com/contrib/reloader">Sinatra::Reloader</a>, 为什么没有用他呢? 因为他不会 reload 整个 app 的代码 T_T 也就是说, 我修改 app.rb 可以 reload, 可是我修改 models 中的代码就不行了, 所以还是使用了 rerun.</p>
+
+<h2 id="section">动态添加实例变量</h2>
+<p>由于我想将查询出来的结果动态的设置进入 model 所以, 就去寻找 ruby 文档看有没有动态设置元素的方法, 然后就寻找到一个 <code>instance_variable_set</code> 方法</p>
+
+<p><strong>ticket.rb</strong></p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">class</span> <span class="nc">Ticket</span>
+  <span class="kp">include</span> <span class="no">JSON</span>
+
+  <span class="c1"># 需要在构造函数这样做, 否则 messages/responses 会失效</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="c1"># 自动根据查询出来的 attr 设置实例变量, 为了进行 json 序列化</span>
+    <span class="n">row</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="o">|</span> <span class="nb">self</span><span class="p">.</span><span class="nf">instance_variable_set</span><span class="p">(</span><span class="s2">"@</span><span class="si">#{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">v</span><span class="p">.</span><span class="nf">force_encoding</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">))</span> <span class="p">}</span>
+  <span class="k">end</span> 
+
+  <span class="k">class</span> <span class="o">&lt;&lt;</span> <span class="nb">self</span>
+    <span class="k">def</span> <span class="nf">id</span>
+      <span class="n">tickets</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="no">DB</span><span class="p">.</span><span class="nf">query</span><span class="p">(</span><span class="s2">"SELECT ticket_id, ticketId, email, name, subject FROM ost_ticket
+       LIMIT 10, 10"</span><span class="p">).</span><span class="nf">each_hash</span> <span class="p">{</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span> <span class="n">tickets</span> <span class="o">&lt;&lt;</span> <span class="no">Ticket</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="p">}</span>
+      <span class="n">tickets</span>
+    <span class="k">end</span>      
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></figure>
+
+<p>然后将修改 app.rb</p>
+
+<p><strong>app.rb</strong></p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">class</span> <span class="nc">App</span> <span class="o">&lt;</span> <span class="no">Sinatra</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">register</span> <span class="no">Sinatra</span><span class="o">::</span><span class="no">Contrib</span>
+
+  <span class="n">get</span> <span class="s1">'/'</span> <span class="k">do</span>
+      <span class="no">JSON</span><span class="p">.</span><span class="nf">generate</span><span class="p">(</span><span class="no">Ticket</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="n">get</span> <span class="s1">'/h'</span> <span class="k">do</span> <span class="s2">"Hello World!"</span> <span class="k">end</span>
+<span class="k">end</span></code></pre></figure>
+
+<p>这样, 当服务器启动的之后, 访问根目录就能得到结果了.</p>
+
+<p>ps: <code>instance_variable_set</code> 部分是很长时候以后在阅读 <strong>Ruby 元编程</strong> 后过来写的, 这个时候发现自己原来的理解是相当相当的简单, 也不太值得详细的去写, 也为了让这篇文章有一个结尾, 还是回来就原来理解的 <code>instance_variable_set</code> 部分做了一个总结, 随着对 Ruby 的不断学习, 感觉真的太棒了.</p>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Wyatt`s Blog</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li>Wyatt`s Blog</li>
+          <li><a href="mailto:wppurking#gmail.com">wppurking#gmail.com</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/wppurking" target="_blank"><span class="icon icon--github"><svg viewBox="0 0 16 16"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">wppurking</span></a>
+
+          </li>
+          
+
+          
+          <li>
+            <a href="https://twitter.com/wyatt_pan" target="_blank"><span class="icon icon--twitter"><svg viewBox="0 0 16 16"><path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/></svg>
+</span><span class="username">wyatt_pan</span></a>
+
+          </li>
+          
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>Wyatt`s Blog 工作,生活的记录
+</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>

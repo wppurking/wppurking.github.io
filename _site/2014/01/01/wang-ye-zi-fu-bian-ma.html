@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>网页 字符 编码</title>
+  <meta name="description" content="起因在编写互联网应用的时候, 特别是在处理不同国家的语言的时候, 很大几率会碰到编码的问题. 如果稍不注意, 通过 API 存入 DB 或者提交给别人网站的信息就讲变为乱码, 为了彻底解决这个问题, 所以详细了解了一下计算机中的各国文字等是如何弄出来的.">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <script type="text/javascript" src="/javascript/app.js"></script>
+  <link rel="canonical" href="http://wppurking.github.io/2014/01/01/wang-ye-zi-fu-bian-ma.html">
+  <link rel="alternate" type="application/rss+xml" title="Wyatt`s Blog" href="http://wppurking.github.io/feed.xml">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/">Wyatt`s Blog</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title" itemprop="name headline">网页 字符 编码</h1>
+    <p class="post-meta"><time datetime="2014-01-01T23:12:00+08:00" itemprop="datePublished">Jan 1, 2014</time></p>
+  </header>
+
+  <div class="post-content" itemprop="articleBody">
+    <h2 id="section">起因</h2>
+<p>在编写互联网应用的时候, 特别是在处理不同国家的语言的时候, 很大几率会碰到编码的问题. 如果稍不注意, 通过 API 存入 DB 或者提交给别人网站的信息就讲变为乱码, 为了彻底解决这个问题, 所以详细了解了一下计算机中的各国文字等是如何弄出来的.</p>
+
+<h2 id="section-1">基础知识</h2>
+<p>说是基础知识, 是因为这些知识给人的感觉就好像是不用解释, 就是这样的一样, 其实我也解释不上来 - -||</p>
+
+<p>首先需要统一的观点是:  <em>计算机中的存储, 无论是在哪一个组件里面, 它最终的归宿都是二进制</em></p>
+
+<p>无论是我们操作的内存, 存储数据的硬盘, 或者网络上传输的内容都是二进制, 最核心的 CPU 到现在也仅仅能处理二进制流 (当然, 如果你要问问什么不能是三进制或者十进制, 这个问题参考<a href="http://www.zhihu.com/question/19846988">知乎</a>吧.</p>
+
+<h2 id="ascii-">不得不说的 ASCII 码</h2>
+<p>因为计算机的所有内容都是二进制存储的, 所以很明显的一点就是 “没有人可以像 CPU 一样读二进制啊”, 所有就有一个组织向 teleprinter encoding systems 学习(可以理解为莫斯密码那样的东西), 使用 8 个二进制对 26 个英文字母, 10 个数字和 20 几个特殊字符制作了一个可以互相对应查找的码表
+<img src="http://wyatt.qiniudn.com/ascii.png" alt="ASCII 码表" title="ASCII 码表" /></p>
+
+<p>我们把通过码表所表达出来的映射规则称为 <em>“编码(encoding)”</em></p>
+
+<p>我们把这个码表的编码(encoding)称为 <em>ASCII 编码 (encoding)</em>.</p>
+
+<p>我们把 a,b,c 这样的字符通过 ASCII 码表转换为 8 位二进制数这样的一个过程称为: 使用 ASCII 编码(encoding)进行 <em>“编码(encode)”</em></p>
+
+<p>我们把将 8 位二进制数通过 ASCII 码表解析成字母的这个过程称为: 使用 ASCII 编码(encoding) 进行 <em>“解码(decode)”</em></p>
+
+<p>我们说字母 a 的 ASCII 码是 0110 0001, 十六进制是 61, 十进制是 97</p>
+
+<p>由于中文的博大精深, 使用一个 “编码” 就涵盖了一个名词和一个动词, 但在理解的时候还是要区分开了.</p>
+
+<p>我不知道 ASCII 编码时不时计算机上的第一个编码, 但在我映像里面应该是第一批编码. 随着计算机从美国慢慢发展到全球不同的地方, 肯定是没有办法使用一个 ASCII 来表示所有的文字的, 例如中国字就没办法使用 ASCII 编码(encoding) 的规则来完成, 因为按照其规则最多边编码(encode) 2^8 = 256  个字符. 所以各个国家开始自己弄自己的一套编码(encoding), 出现了 GBK/GBK2312, BIG5 等等..</p>
+
+<p>为了解决不同编码(encoding)各自为政的情况, 出现了一个名为 Unicode 的编码(encoding), 可能还会看到诸如 UCS-2, UCS-4 这样的名称, 这是因为不仅仅只有一个组织想解决这个问题, UCS 全称为 Universal Character Set, 这个是由 ISO 组织主导的, 但是随着这个时代的发展, 这两个组织意识到世界上没必要存在两种不同的编码来做同样的事情, 所以从 Unicode 2.0 开始两者开始合并双方的成果.</p>
+
+<h2 id="section-2">乱码的问题</h2>
+<p>如果世界上大家都使用 Unicode 编码(encoding) 那么就不会存在乱码的问题了, 可现实却使很残酷的… 所以我们在不同语言的网站之间处理数据就很可能碰到编码的乱码的问题. 而乱码问题的发生则是在解码的时候所使用的编码(encoding) 并不是产生所存储的那些二进制时使用的编码(encoding).</p>
+
+<p>那我们来看看几个实际问题的情况:</p>
+
+<ol>
+  <li>通过 Java 代码读取本地文件的内容显示的是乱码.</li>
+  <li>抓取一个含有中文字内容的网站回来是乱码.</li>
+  <li>通过 API 提交含有中文字内容的信息给一个美国网站, 信息是乱码.</li>
+</ol>
+
+<p>这些问题发生的本质原因都是编码(encode)时使用的编码(encoding)与解码时所使用的编码(encoding)不一样导致的.</p>
+
+<p>当我们编写好的代码在处理文本内容的时候, 是一定会经过解码这个过程的, 一定会需要将存储在计算机中的二进制数据解码为字符, 而解码一定需要一个编码(encoding), 所以回想一下当你涉及到需要读取或者操作一个文件或者一串字符串或者一个页面的内容的时候, 一定会有一个地方携带者编码(encoding)这个 metadata.</p>
+
+<ul>
+  <li>在通过 HTTP 协议从网站返回结果的时候会有 <code>Content-Type: text/html; charset=UTF-8</code> 告诉你返回的内容的编码.</li>
+  <li>在读取文件系统的文件的时候, 这个文件会拥有一个自己的编码(encoding).</li>
+  <li>对于 JVM 或者 Ruby VM 这样的 VM 来说, 会有一个 VM 级别的编码(encoding)设置.</li>
+  <li>对于操作系统来说, 也会有一个 LANG=en_US.UTF-8 指定语言与编码(encoding).</li>
+</ul>
+
+<p>然后从最上层开始, 如果没有找到 encoding 信息, 则会一层一层向下寻找, 直到最终找到操作系统所使用的编码(encoding) 作为一个默认编码.  以 Ruby 为例: “通过 Ruby 代码编写抓取某中文网站的内容返回了 HTML 内容, 可是没有告诉你 charset 是什么, 那么这个时候 Ruby VM 会使用 External encoding 来解析这些二进制数据, 如果没有 External encoding 则选择使用 Default External encoding, 而 Default External encoding 使用的是 Locale encoding, 而 Ruby VM 中的 Locale encoding 则是 Ruby VM 所在的操作系统的本地编码”.</p>
+
+<p>所以, 如果想尽可能避免碰到乱码的问题, 那么一个是让自己使用 UTF-8 这样的统一编码, 一个是在编写程序的时候, 自己要能够从某些地方获取或者猜测到正确的编码, 否则就很容易出现乱码的情况. 同时在处理并理清含有乱码这样的问题的时候一定要理解清楚 “encoding”, “encode”, “decode” 以及 “二进制” 与 “字符串”</p>
+
+<p>PS: 如果对计算机是如何处理编码还有一点点疑惑, 可以参看 <a href="http://www.ibm.com/developerworks/cn/java/j-lo-chinesecoding/">深入分析 Java 中的中文编码问题</a> 中关于 “按照 XXX 编码” 的部分来理解.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Wyatt`s Blog</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li>Wyatt`s Blog</li>
+          <li><a href="mailto:wppurking#gmail.com">wppurking#gmail.com</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/wppurking" target="_blank"><span class="icon icon--github"><svg viewBox="0 0 16 16"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">wppurking</span></a>
+
+          </li>
+          
+
+          
+          <li>
+            <a href="https://twitter.com/wyatt_pan" target="_blank"><span class="icon icon--twitter"><svg viewBox="0 0 16 16"><path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/></svg>
+</span><span class="username">wyatt_pan</span></a>
+
+          </li>
+          
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>Wyatt`s Blog 工作,生活的记录
+</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
