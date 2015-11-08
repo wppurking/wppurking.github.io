@@ -1,4 +1,5 @@
 ---
+layout: default
 title: "为 Mac OS 添加 Bash Completion"
 date: 2013-03-03 15:37
 comments: true

@@ -1,4 +1,5 @@
 ---
+layout: default
 title: "网页 字符 编码"
 date: 2014-01-01 23:12
 comments: true

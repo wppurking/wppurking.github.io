@@ -1,4 +1,5 @@
 ---
+layout: default
 title: "Sinatra 探险 (2)"
 date: 2013-01-09 23:34
 comments: true

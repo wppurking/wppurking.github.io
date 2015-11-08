@@ -1,4 +1,5 @@
 ---
+layout: default
 title: "wrap_parameters 初识"
 date: 2013-09-22 23:09
 comments: true

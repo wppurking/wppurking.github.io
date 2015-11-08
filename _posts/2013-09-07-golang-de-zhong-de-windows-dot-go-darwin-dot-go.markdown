@@ -1,4 +1,5 @@
 ---
+layout: default
 title: "Golang 的中的 windows.go darwin.go"
 date: 2013-09-07 10:42
 comments: true

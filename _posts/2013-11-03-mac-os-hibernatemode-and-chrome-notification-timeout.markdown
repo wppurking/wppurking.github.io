@@ -1,4 +1,5 @@
 ---
+layout: default
 title: "Mac OS hibernatemode and Chrome Notification Timeout"
 date: 2013-11-03 13:08
 comments: true

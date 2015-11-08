@@ -1,4 +1,5 @@
 ---
+layout: default
 title: "使用 ocserv-docker 享受自由网络"
 date: 2014-10-11 11:42:44
 description: "ocserv docker anyconnect 搭建 部署 配置 教程 翻墙 证书 iphone android"

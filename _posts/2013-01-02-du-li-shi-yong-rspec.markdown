@@ -1,4 +1,5 @@
 ---
+layout: default
 title: "独立使用 Rspec"
 date: 2013-01-02 22:02
 comments: true

@@ -1,4 +1,5 @@
 ---
+layout: default
 title: "利用 Dnsmasq 搭建自己的 DNS 服务器"
 date: 2012-10-01 18:14
 comments: true

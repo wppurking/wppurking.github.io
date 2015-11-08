@@ -1,4 +1,5 @@
 ---
+layout: default
 title: "重新安装 Homebrew"
 date: 2012-12-23 20:47
 comments: true
