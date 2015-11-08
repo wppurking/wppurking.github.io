@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: "使用 Golang 编写小应用后的感受"
 date: 2013-08-10 22:59
 comments: true

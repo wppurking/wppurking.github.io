@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: "Rails3 中的 has_secure_password"
 date: 2012-09-26 21:26
 comments: true

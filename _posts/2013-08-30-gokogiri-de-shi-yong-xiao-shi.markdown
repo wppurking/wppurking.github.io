@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: "gokogiri 的使用小试"
 date: 2013-08-30 10:39
 comments: true

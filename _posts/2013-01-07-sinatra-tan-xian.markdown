@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: "Sinatra 探险 (1)"
 date: 2013-01-07 23:43
 comments: true

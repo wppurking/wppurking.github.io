@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: "Nginx 反向代理自定义域名访问 Cloudfoundry"
 date: 2013-03-13 13:18
 comments: true

@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: "初识 Beanstalk"
 date: 2012-10-01 18:14
 comments: true

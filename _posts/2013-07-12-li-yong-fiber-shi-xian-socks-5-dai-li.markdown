@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: "利用 EventMachine 和 Fiber 实现 Socks 5 代理(1)"
 date: 2013-07-12 22:26
 comments: true

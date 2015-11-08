@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: "rspec 中的 should_receive"
 date: 2013-02-27 23:11
 comments: true

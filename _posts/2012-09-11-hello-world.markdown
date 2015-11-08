@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: "Hello Octopress"
 date: 2012-09-11 15:30
 comments: true
