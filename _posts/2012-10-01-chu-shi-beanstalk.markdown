@@ -3,7 +3,7 @@ layout: default
 title: "初识 Beanstalk"
 date: 2012-10-01 18:14
 comments: true
-categories: rails ruby queue
+tags: [rails ruby queue]
 ---
 这几天一直在想一个问题 "如何利用 Ruby 维持一个量大的 Queue", 一直在考虑这样的问题, 其实本质上也就是因为 background job 引来的, 当然在使用 [Play!][l2] 的使用对 Job 的理解与在 Rails 中看到的 [Delayed_job][l1] 对 Job 的理解, 也会突然多了另外一个思路.
 

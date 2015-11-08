@@ -3,7 +3,7 @@ layout: default
 title: "wrap_parameters 初识"
 date: 2013-09-22 23:09
 comments: true
-categories: rails angularjs payload
+tags: [rails angularjs payload]
 ---
 ## 问题
 最近在使用 angularjs 与 rails 练习一个 Todolist 的例子程序, 在利用 angularjs 的 resources 模块创建一个前端的 Resource Model 向 Rails 提交创建请求的时候, 发生了个奇怪的问题.

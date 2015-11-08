@@ -3,7 +3,7 @@ layout: default
 title: "利用 Dnsmasq 搭建自己的 DNS 服务器"
 date: 2012-10-01 18:14
 comments: true
-categories: ruby beanstalkd
+tags: [ruby beanstalkd]
 ---
 ## 前言
 最近新买了 iPad mini, 在不断折腾的过程中发现一点让我非常非常的无语… 还是与网络有关, 那就是通常情况下, iPad mini 中的 App Store 连接速度那是相当相当相当的慢的, 慢到我打开 App Store 软件的首页需要登上 20~30s 才会有可能访问成功, 那么下载一个应用的情况可想而知了. 因为在编写 [wyatt_hosts](l1) 的时候, 也为了解决在 iMac 上进行 Mac OS 更新慢的问题, 所以关于 iPad mini 基本上也就同样的解决方法了.

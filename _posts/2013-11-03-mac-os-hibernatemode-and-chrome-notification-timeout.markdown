@@ -3,7 +3,7 @@ layout: default
 title: "Mac OS hibernatemode and Chrome Notification Timeout"
 date: 2013-11-03 13:08
 comments: true
-categories: mountain lion Chrome hibernatemode
+tags: [mountain lion Chrome hibernatemode]
 ---
 ### 起因和问题
 最近将 MacBook Air 从原来的 10.7 升级到了 10.8 (没有升级 10.9 是因为太新有些工具不兼容), 然后就碰到类似 ["Mountain Lion 关机速度慢"](http://blog.csdn.net/cneducation/article/details/8293224), ["Mountain Lion 休眠速度慢"](http://www.mobileai.tw/2012/09/20/mac-osx-ssd-optimization/) 这样的问题困扰, 其实这些问题都挺好解决的, 是一些配置问题, 只是修改这些配置的地方没有那么友好. 不过我在修改了 

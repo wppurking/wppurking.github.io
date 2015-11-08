@@ -5,7 +5,7 @@ date: 2012-09-11 15:30
 comments: true
 published: true
 author: Wyatt
-categories: [Other]
+tags: [Other]
 ---
 总算是将 Octopress 博客在 Github 的 Pages 中搭建起来了, 第一次使用
 Github 的 Pages 的时, 错误将 username/username.github.com 中的两个

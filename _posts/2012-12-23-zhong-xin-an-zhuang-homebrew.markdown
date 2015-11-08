@@ -3,7 +3,7 @@ layout: default
 title: "重新安装 Homebrew"
 date: 2012-12-23 20:47
 comments: true
-categories: ruby brew homebrew
+tags: [ruby brew homebrew]
 ---
 ## 起因
 [homebrew (brew)](l1) 是 Mac OS 上一个类似 Ubuntu 上 apt-get 的软件, 从使用 Mac OS 以来, 所有 CLI 中的软件, 都是通过 `brew install` 安装的, 可是在一次 `brew update` 产生了大量大量的 CONFLICT 代码, 突然想起是不是我原来安装一个 app 的时候, 修改了 `/usr/local/Library/Formula` 下的安装脚本, 鬼使神差的我肯定还做了其他动作, T.T 想不起来了.
