@@ -2,7 +2,7 @@
 layout: post
 title: Ubuntu 的启动流程
 date: 2015-06-11 23:49:23
-tags: [tech]
+tags: [tech ubuntu linux]
 ---
 ## 起因
 最近在处理 Ubuntu 服务器上的一些问题的时候, 碰到一些列的 Bash 的环境变量有关的问题, 为了弄清楚这里面的细节着实是翻了一系列的资料. 我要弄清楚 Bash 的环境变量的东西, 就要弄清楚 Ubuntu 是在何时让 Bash 启动的, 而要理解这个那么理解 Ubuntu Boot 流程是比不可少, 最详细的文档[在这可翻阅][ubuntu-sysvinit], 这里是做一些文章的简介, 关键信息的抽取.
